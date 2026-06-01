@@ -5,15 +5,16 @@ export default async function handler(req, res) {
     const all  = await stravaGet('/athlete/activities', { per_page: 50, page: 1 });
     const runs = (all || []).filter((a) => a.type === 'Run' || a.sport_type === 'Run');
     res.json(runs.map((a) => ({
-      id:                  a.id,
-      name:                a.name,
-      start_date:          a.start_date,
-      start_date_local:    a.start_date_local,
-      distance_m:          a.distance,
-      moving_time_s:       a.moving_time,
-      elapsed_time_s:      a.elapsed_time,
-      average_speed_mps:   a.average_speed,
+      id:                   a.id,
+      name:                 a.name,
+      start_date:           a.start_date,
+      start_date_local:     a.start_date_local,
+      distance_m:           a.distance,
+      moving_time_s:        a.moving_time,
+      elapsed_time_s:       a.elapsed_time,
+      average_speed_mps:    a.average_speed,
       total_elevation_gain: a.total_elevation_gain,
+      perceived_exertion:   a.perceived_exertion ?? null,
     })));
   } catch (err) {
     handleError(err, res);

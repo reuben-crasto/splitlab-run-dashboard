@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import Dashboard from './views/Dashboard.jsx';
 import RunDetail from './views/RunDetail.jsx';
 import ConnectPrompt from './views/ConnectPrompt.jsx';
+import Sidebar from './components/Sidebar.jsx';
 import { getStatus } from './lib/api.js';
 
 export default function App() {
@@ -20,14 +21,8 @@ export default function App() {
       .then((s) => {
         if (cancelled) return;
         setStatus({ loading: false, ...s });
-        // Clean the ?auth= param from the URL once we've handled it
-        if (authParam) {
-          navigate('/', { replace: true });
-        }
-        // If we came back from OAuth but still not connected, surface the error
-        if (authParam === 'ok' && !s.connected) {
-          setAuthError(true);
-        }
+        if (authParam) navigate('/', { replace: true });
+        if (authParam === 'ok' && !s.connected) setAuthError(true);
       })
       .catch(() => {
         if (!cancelled) setStatus({ loading: false, connected: false });
@@ -36,7 +31,11 @@ export default function App() {
   }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (status.loading) {
-    return <div className="app"><div className="empty-state">Loading…</div></div>;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', color: 'var(--text-dim)' }}>
+        Loading…
+      </div>
+    );
   }
 
   if (!status.connected) {
@@ -44,20 +43,15 @@ export default function App() {
   }
 
   return (
-    <div className="app">
-      <header className="header">
-        <h1><Link to="/">Run Dashboard</Link></h1>
-        <div className="athlete">
-          <span className="dot">●</span>{' '}
-          Connected as{' '}
-          {status.athlete ? `${status.athlete.firstname ?? ''} ${status.athlete.lastname ?? ''}`.trim() : 'athlete'}
-        </div>
-      </header>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/run/:id" element={<RunDetail />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+    <div className="app-shell">
+      <Sidebar athlete={status.athlete} />
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/run/:id" element={<RunDetail />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
     </div>
   );
 }

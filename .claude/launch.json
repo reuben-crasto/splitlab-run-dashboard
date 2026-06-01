@@ -10,8 +10,8 @@
     },
     {
       "name": "Vite React Client",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/.bin/vite"],
       "cwd": "client",
       "port": 5173
     },

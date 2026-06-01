@@ -5,15 +5,16 @@ export default async function handler(req, res) {
     const { id } = req.query;
     const detail = await stravaGet(`/activities/${id}`);
     res.json({
-      id:                detail.id,
-      name:              detail.name,
-      start_date:        detail.start_date,
-      start_date_local:  detail.start_date_local,
-      distance_m:        detail.distance,
-      moving_time_s:     detail.moving_time,
-      average_speed_mps: detail.average_speed,
-      splits_metric:     detail.splits_metric  || [],
-      best_efforts:      detail.best_efforts   || [],
+      id:                  detail.id,
+      name:                detail.name,
+      start_date:          detail.start_date,
+      start_date_local:    detail.start_date_local,
+      distance_m:          detail.distance,
+      moving_time_s:       detail.moving_time,
+      average_speed_mps:   detail.average_speed,
+      perceived_exertion:  detail.perceived_exertion ?? null,
+      splits_metric:       detail.splits_metric  || [],
+      best_efforts:        detail.best_efforts   || [],
     });
   } catch (err) {
     if (err.code === 'NOT_CONNECTED')  return res.status(401).json({ error: 'not_connected' });
