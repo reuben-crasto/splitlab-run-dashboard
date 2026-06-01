@@ -22,21 +22,23 @@ export default function RunDetail() {
   if (!run) return <div className="empty-state">Loading run…</div>;
 
   return (
-    <>
+    <div style={{ padding: '28px 24px' }}>
       <div className="detail-header">
         <Link to="/" className="back">← Back</Link>
         <h1>{run.name}</h1>
-        <span className="stat"><b>{formatDate(run.start_date)}</b></span>
-        <span className="stat"><b>{formatKm(run.distance_m)}</b> distance</span>
-        <span className="stat"><b>{formatDuration(run.moving_time_s)}</b> moving</span>
-        <span className="stat"><b>{formatPace(mpsToSecPerKm(run.average_speed_mps))}</b> avg</span>
+        <div style={{ marginTop: 8, display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+          <span className="stat"><b>{formatDate(run.start_date)}</b></span>
+          <span className="stat"><b>{formatKm(run.distance_m)}</b> distance</span>
+          <span className="stat"><b>{formatDuration(run.moving_time_s)}</b> moving</span>
+          <span className="stat"><b>{formatPace(mpsToSecPerKm(run.average_speed_mps))}</b> avg</span>
+        </div>
       </div>
 
-      <section className="panel">
+      <div className="panel">
         <h2>Pace per KM — where am I slowing down?</h2>
         <SplitsChart splits={run.splits_metric} averageSpeedMps={run.average_speed_mps} />
         <PacingVerdict splits={run.splits_metric} averageSpeedMps={run.average_speed_mps} />
-      </section>
-    </>
+      </div>
+    </div>
   );
 }

@@ -1,84 +1,98 @@
 import { useMemo } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  ReferenceLine, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  ReferenceLine,
 } from 'recharts';
 import { mpsToSecPerKm, paceMinutesDecimal, formatPace } from '../lib/format.js';
 
-const COLOR_GOOD = '#00ff87';
-const COLOR_WARN = '#ffb800';
-const COLOR_BAD  = '#ff4d4d';
+const ACCENT = '#C4DE55';
 
-function colorForSplit(paceSec, avgSec) {
-  if (paceSec == null || avgSec == null) return COLOR_GOOD;
-  const ratio = paceSec / avgSec;
-  // Pace is time/distance — higher = slower
-  if (ratio <= 1.0) return COLOR_GOOD;           // at or faster than avg
-  if (ratio <= 1.05) return COLOR_GOOD;          // up to 5% slower stays green
-  if (ratio <= 1.10) return COLOR_WARN;          // 5–10% slower
-  return COLOR_BAD;                              // 10%+ slower
+function CustomTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  return (
+    <div style={{
+      background: '#0A140B',
+      border: '1px solid #1F301F',
+      borderRadius: 6,
+      padding: '8px 12px',
+      fontFamily: 'IBM Plex Sans, sans-serif',
+      fontSize: 12,
+    }}>
+      <div style={{ color: '#9A9991', marginBottom: 2 }}>km {d.km}</div>
+      <div style={{ color: '#DCDBCF', fontWeight: 700 }}>{formatPace(d.paceSec)}</div>
+    </div>
+  );
 }
 
-export default function SplitsChart({ splits, averageSpeedMps }) {
+export default function SplitsChart({ splits, averageSpeedMps, height = 220 }) {
   const { data, avgMin } = useMemo(() => {
-    const avgSec = mpsToSecPerKm(averageSpeedMps);
     const rows = splits.map((s, i) => {
       const paceSec = mpsToSecPerKm(s.average_speed);
       return {
         km: i + 1,
         paceMin: paceMinutesDecimal(paceSec),
         paceSec,
-        color: colorForSplit(paceSec, avgSec),
       };
     });
-    return { data: rows, avgMin: paceMinutesDecimal(avgSec) };
+    return { data: rows, avgMin: paceMinutesDecimal(mpsToSecPerKm(averageSpeedMps)) };
   }, [splits, averageSpeedMps]);
 
   if (data.length === 0) {
     return <div className="empty-state">No split data for this run.</div>;
   }
 
-  const maxPace = Math.max(...data.map((d) => d.paceMin).filter(Boolean));
-  const minPace = Math.min(...data.map((d) => d.paceMin).filter(Boolean));
+  const validPaces = data.map((d) => d.paceMin).filter(Boolean);
+  const maxPace = Math.max(...validPaces);
+  const minPace = Math.min(...validPaces);
+  // Non-reversed axis: taller bar = slower km (matches Figma)
+  const domainMin = Math.floor((minPace - 0.25) * 60) / 60;
+  const domainMax = Math.ceil((maxPace + 0.25) * 60) / 60;
 
   return (
-    <ResponsiveContainer width="100%" height={360}>
-      <BarChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
-        <CartesianGrid stroke="#262626" vertical={false} />
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart
+        data={data}
+        margin={{ top: 14, right: 28, left: 0, bottom: 6 }}
+        barCategoryGap="14%"
+      >
         <XAxis
           dataKey="km"
-          tick={{ fill: '#8a8a8a', fontSize: 11, fontFamily: 'JetBrains Mono' }}
-          stroke="#262626"
-          label={{ value: 'km split', position: 'insideBottom', dy: 10, fill: '#8a8a8a', style: { fontSize: 11 } }}
+          tickLine={false}
+          axisLine={false}
+          tick={{ fill: '#9A9991', fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' }}
         />
         <YAxis
-          domain={[Math.floor(minPace - 0.2), Math.ceil(maxPace + 0.2)]}
-          reversed
+          domain={[domainMin, domainMax]}
+          tickCount={3}
+          tickLine={false}
+          axisLine={false}
           tickFormatter={(v) => {
             const m = Math.floor(v);
             const s = Math.round((v - m) * 60);
             return `${m}:${String(s).padStart(2, '0')}`;
           }}
-          tick={{ fill: '#8a8a8a', fontSize: 11, fontFamily: 'JetBrains Mono' }}
-          stroke="#262626"
+          tick={{ fill: '#9A9991', fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' }}
+          width={44}
         />
-        <Tooltip
-          contentStyle={{ background: '#181818', border: '1px solid #262626', fontFamily: 'JetBrains Mono', fontSize: 12 }}
-          labelStyle={{ color: '#8a8a8a' }}
-          formatter={(_v, _name, ctx) => [formatPace(ctx.payload.paceSec), `km ${ctx.payload.km}`]}
-          labelFormatter={() => ''}
-        />
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(196,222,85,0.06)' }} />
         <ReferenceLine
           y={avgMin}
-          stroke="#f5f5f5"
-          strokeDasharray="4 4"
-          label={{ value: `avg ${formatPace(avgMin * 60)}`, position: 'insideTopRight', fill: '#8a8a8a', style: { fontSize: 11, fontFamily: 'JetBrains Mono' } }}
+          stroke="#1F301F"
+          strokeDasharray="4 3"
+          label={{
+            value: 'avg',
+            position: 'right',
+            fill: '#9A9991',
+            style: { fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' },
+          }}
         />
-        <Bar dataKey="paceMin" isAnimationActive={false}>
-          {data.map((d) => (
-            <Cell key={d.km} fill={d.color} />
-          ))}
-        </Bar>
+        <Bar
+          dataKey="paceMin"
+          fill={ACCENT}
+          isAnimationActive={false}
+          radius={[4, 4, 0, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

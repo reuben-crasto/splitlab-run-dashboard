@@ -77,9 +77,10 @@ export default function RunLogForm({ run, existingLog, onClose, onSaved }) {
         <form className="log-form" onSubmit={handleSubmit}>
           <DotSelector
             label="How did km 1 feel?"
-            sublabel="1 = easy · 5 = all-out"
+            sublabel="1 = easy · 10 = all-out"
             value={km1Rpe}
             onChange={setKm1Rpe}
+            max={10}
           />
           <DotSelector
             label="Leg soreness before the run?"

@@ -3,23 +3,15 @@ import { mpsToSecPerKm, formatPace } from '../lib/format.js';
 
 function getWeekStart(date) {
   const d = new Date(date);
-  const day = d.getDay(); // 0=Sun
-  const diff = day === 0 ? 6 : day - 1; // days back to Monday
+  const day = d.getDay();
+  const diff = day === 0 ? 6 : day - 1;
   d.setDate(d.getDate() - diff);
   d.setHours(0, 0, 0, 0);
   return d;
 }
 
-function weekStats(runs) {
-  if (runs.length === 0) return { km: 0, avgPaceSec: null, count: 0 };
-  const km = runs.reduce((s, r) => s + r.distance_m / 1000, 0);
-  const paces = runs.map((r) => mpsToSecPerKm(r.average_speed_mps)).filter(Boolean);
-  const avgPaceSec = paces.length ? paces.reduce((a, b) => a + b, 0) / paces.length : null;
-  return { km, avgPaceSec, count: runs.length };
-}
-
-export default function WeeklyLoad({ runs }) {
-  const { thisWeek, lastWeek, kmPct, paceDiff, bothIncreasing } = useMemo(() => {
+export default function WeeklyLoad({ runs, logMap = {} }) {
+  const stats = useMemo(() => {
     const now = new Date();
     const thisStart = getWeekStart(now);
     const lastStart = new Date(thisStart);
@@ -31,76 +23,64 @@ export default function WeeklyLoad({ runs }) {
       return d >= lastStart && d < thisStart;
     });
 
-    const thisWeek = weekStats(thisRuns);
-    const lastWeek = weekStats(lastRuns);
+    const runsCount = thisRuns.length;
 
-    // % change in km
-    const kmPct = lastWeek.km > 0
-      ? ((thisWeek.km - lastWeek.km) / lastWeek.km) * 100
+    const effortValues = thisRuns
+      .map((r) => logMap[String(r.id)]?.km1_rpe ?? r.perceived_exertion)
+      .filter((v) => v != null);
+    const avgEffort = effortValues.length > 0
+      ? effortValues.reduce((a, b) => a + b, 0) / effortValues.length
       : null;
 
-    // pace diff in sec/km — negative = getting faster
-    const paceDiff = (thisWeek.avgPaceSec != null && lastWeek.avgPaceSec != null)
-      ? thisWeek.avgPaceSec - lastWeek.avgPaceSec
-      : null;
+    const thisPaces = thisRuns.map((r) => mpsToSecPerKm(r.average_speed_mps)).filter(Boolean);
+    const lastPaces = lastRuns.map((r) => mpsToSecPerKm(r.average_speed_mps)).filter(Boolean);
+    const thisAvgPace = thisPaces.length ? thisPaces.reduce((a, b) => a + b, 0) / thisPaces.length : null;
+    const lastAvgPace = lastPaces.length ? lastPaces.reduce((a, b) => a + b, 0) / lastPaces.length : null;
+    const paceDiff = thisAvgPace != null && lastAvgPace != null ? thisAvgPace - lastAvgPace : null;
 
-    // Injury flag: both volume UP and pace FASTER simultaneously
-    const kmIncreasing    = kmPct != null && kmPct > 0;
-    const paceImproving   = paceDiff != null && paceDiff < 0; // faster = lower sec/km
-    const bothIncreasing  = kmIncreasing && paceImproving;
+    const thisVolume = thisRuns.reduce((s, r) => s + r.distance_m / 1000, 0);
+    const lastVolume = lastRuns.reduce((s, r) => s + r.distance_m / 1000, 0);
+    const volumeDiff = lastRuns.length > 0 ? thisVolume - lastVolume : null;
 
-    return { thisWeek, lastWeek, kmPct, paceDiff, bothIncreasing };
-  }, [runs]);
+    const volumeUp   = volumeDiff != null && volumeDiff > 0;
+    const paceFaster = paceDiff   != null && paceDiff < 0;
+    const bothIncreasing = volumeUp && paceFaster;
 
-  const kmColor   = kmPct   == null ? '' : (bothIncreasing ? 'var(--bad)' : (kmPct > 0 ? 'var(--good)' : 'var(--text-dim)'));
-  const paceColor = paceDiff == null ? '' : (bothIncreasing ? 'var(--bad)' : (paceDiff < 0 ? 'var(--good)' : 'var(--text-dim)'));
+    return { runsCount, avgEffort, thisAvgPace, paceDiff, thisVolume, volumeDiff, bothIncreasing };
+  }, [runs, logMap]);
 
-  const kmArrow   = kmPct   == null ? '' : (kmPct   > 0 ? '↑' : '↓');
-  const paceArrow = paceDiff == null ? '' : (paceDiff < 0 ? '↑' : '↓'); // ↑ = faster = good
+  const { runsCount, avgEffort, thisAvgPace, paceDiff, thisVolume, volumeDiff, bothIncreasing } = stats;
+
+  const paceArrow = paceDiff == null ? null : (paceDiff < 0 ? '↑' : '↓');
+  const paceColor = paceDiff == null ? '' : bothIncreasing ? 'var(--bad)' : paceDiff < 0 ? 'var(--good)' : 'var(--bad)';
+
+  const volumeArrow = volumeDiff == null ? null : (volumeDiff > 0 ? '↑' : '↓');
+  const volumeColor = volumeDiff == null ? '' : bothIncreasing ? 'var(--bad)' : volumeDiff < 0 ? 'var(--bad)' : '';
 
   return (
-    <div className="weekly-load">
-      <div className="wl-stats">
-        <div className="wl-stat">
-          <div className="wl-label">This week</div>
-          <div className="wl-value">{thisWeek.km.toFixed(1)} km</div>
-          <div className="wl-sub">{thisWeek.count} run{thisWeek.count !== 1 ? 's' : ''}</div>
-        </div>
-
-        <div className="wl-stat">
-          <div className="wl-label">vs last week</div>
-          <div className="wl-value" style={{ color: kmColor }}>
-            {kmPct == null ? '—' : `${kmArrow} ${Math.abs(kmPct).toFixed(0)}%`}
-          </div>
-          <div className="wl-sub">{lastWeek.km.toFixed(1)} km prior</div>
-        </div>
-
-        <div className="wl-stat">
-          <div className="wl-label">Avg pace this week</div>
-          <div className="wl-value">
-            {thisWeek.avgPaceSec ? formatPace(thisWeek.avgPaceSec) : '—'}
-          </div>
-          <div className="wl-sub">
-            {lastWeek.avgPaceSec ? formatPace(lastWeek.avgPaceSec) + ' prior' : 'no prior data'}
-          </div>
-        </div>
-
-        <div className="wl-stat">
-          <div className="wl-label">Pace change</div>
-          <div className="wl-value" style={{ color: paceColor }}>
-            {paceDiff == null
-              ? '—'
-              : `${paceArrow} ${Math.abs(paceDiff).toFixed(0)}s/km`}
-          </div>
-          <div className="wl-sub">{paceDiff == null ? '' : (paceDiff < 0 ? 'faster' : 'slower')}</div>
+    <div className="wl-stats">
+      <div className="wl-stat">
+        <div className="wl-label">Runs</div>
+        <div className="wl-value">{runsCount}</div>
+      </div>
+      <div className="wl-stat">
+        <div className="wl-label">Avg Effort</div>
+        <div className="wl-value">{avgEffort != null ? `${avgEffort.toFixed(1)}/10` : '—'}</div>
+      </div>
+      <div className="wl-stat">
+        <div className="wl-label">Avg Pace</div>
+        <div className="wl-value">
+          {thisAvgPace != null ? formatPace(thisAvgPace) : '—'}
+          {paceArrow && <span style={{ color: paceColor, marginLeft: 4, fontSize: 14 }}>{paceArrow}</span>}
         </div>
       </div>
-
-      {bothIncreasing && (
-        <div className="wl-warning">
-          ⚠ You increased both distance and pace this week — pick one to avoid injury
+      <div className="wl-stat">
+        <div className="wl-label">Volume</div>
+        <div className="wl-value">
+          {thisVolume.toFixed(1)}<span style={{ fontSize: 11, color: 'var(--text-dim)', marginLeft: 2 }}>km</span>
+          {volumeArrow && <span style={{ color: volumeColor, marginLeft: 4, fontSize: 14 }}>{volumeArrow}</span>}
         </div>
-      )}
+      </div>
     </div>
   );
 }

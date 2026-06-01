@@ -6,3 +6,6 @@ server/tokens.json
 .DS_Store
 *.log
 .vite
+.vercel
+.env*.local
+.claude/worktrees/

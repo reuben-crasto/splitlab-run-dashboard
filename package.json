@@ -6,7 +6,7 @@
   "description": "Personal Strava running dashboard",
   "scripts": {
     "build": "npm --prefix client install && npm --prefix client run build",
-    "dev": "concurrently -n api,client -c blue,magenta \"vercel dev --listen 3000\" \"npm:dev:client\"",
+    "start": "concurrently -n api,client -c blue,magenta \"vercel dev --listen 3000\" \"npm run dev:client\"",
     "dev:client": "npm --prefix client run dev",
     "install:all": "npm install && npm --prefix client install"
   },
