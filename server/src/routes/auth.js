@@ -1,8 +1,35 @@
 import { Router } from 'express';
 import { exchangeCodeForTokens } from '../lib/strava.js';
 import { writeTokens, readTokens } from '../lib/tokens.js';
+import {
+  isAuthConfigured, isAuthed, verifyPassword, createToken, sessionCookie,
+} from '../lib/auth.js';
 
 const router = Router();
+
+// ── Editor session (shared password) ──────────────────────────────────────────
+// GET /auth/session → { authed, configured }
+router.get('/session', (req, res) => {
+  res.json({ authed: isAuthed(req), configured: isAuthConfigured() });
+});
+
+// POST /auth/session → log in with { password }
+router.post('/session', (req, res) => {
+  if (!isAuthConfigured()) {
+    return res.status(503).json({ error: 'auth_not_configured' });
+  }
+  if (!verifyPassword(req.body?.password)) {
+    return res.status(401).json({ error: 'invalid_password' });
+  }
+  res.setHeader('Set-Cookie', sessionCookie(createToken()));
+  res.json({ authed: true });
+});
+
+// DELETE /auth/session → log out
+router.delete('/session', (req, res) => {
+  res.setHeader('Set-Cookie', sessionCookie(null, { clear: true }));
+  res.json({ authed: false });
+});
 
 // Kick off OAuth — redirect user to Strava authorize page
 router.get('/strava', (req, res) => {

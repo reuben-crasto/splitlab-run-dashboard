@@ -14,6 +14,9 @@ app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
+// Mounted under /api/auth to match the Vercel function routes the client calls;
+// /auth stays for backwards compatibility with existing OAuth redirect URIs.
+app.use('/api/auth', authRouter);
 app.use('/auth', authRouter);
 app.use('/api', apiRouter);
 app.use('/api/run-logs', runLogsRouter);

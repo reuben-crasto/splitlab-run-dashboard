@@ -1,4 +1,5 @@
 import { getSupabase } from './_lib/supabase.js';
+import { isAuthed } from './_lib/auth.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET')  return handleGet(req, res);
@@ -23,6 +24,9 @@ async function handleGet(req, res) {
 
 async function handlePost(req, res) {
   try {
+    // Reading logs is public; editing them requires the session cookie.
+    if (!isAuthed(req)) return res.status(401).json({ error: 'unauthorized' });
+
     const { activity_id, km1_rpe, soreness, overall, notes } = req.body;
     if (!activity_id) return res.status(400).json({ error: 'activity_id is required' });
 

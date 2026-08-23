@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import Dashboard from './views/Dashboard.jsx';
+import Trends from './views/Trends.jsx';
+import Runs from './views/Runs.jsx';
 import RunDetail from './views/RunDetail.jsx';
 import ConnectPrompt from './views/ConnectPrompt.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -48,6 +50,8 @@ export default function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/runs" element={<Runs />} />
+          <Route path="/trends" element={<Trends />} />
           <Route path="/run/:id" element={<RunDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
