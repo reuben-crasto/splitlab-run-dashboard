@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getSupabase } from '../lib/supabase.js';
+import { isAuthed } from '../lib/auth.js';
 
 const router = Router();
 
@@ -26,6 +27,9 @@ router.get('/', async (req, res, next) => {
 // POST /api/run-logs
 router.post('/', async (req, res, next) => {
   try {
+    // Reading logs is public; editing them requires the session cookie.
+    if (!isAuthed(req)) return res.status(401).json({ error: 'unauthorized' });
+
     const { activity_id, km1_rpe, soreness, overall, notes } = req.body;
     if (!activity_id) return res.status(400).json({ error: 'activity_id is required' });
 

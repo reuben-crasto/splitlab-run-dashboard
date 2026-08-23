@@ -963,6 +963,23 @@ body {
 
 .log-notes:focus { border-color: var(--accent); }
 
+.modal--narrow { max-width: 340px; }
+
+.unlock-input {
+  width: 100%;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+}
+
+.unlock-input:focus { border-color: var(--accent); }
+.unlock-input::placeholder { color: var(--text-muted); }
+
 .log-error {
   font-size: 12px;
   color: var(--bad);

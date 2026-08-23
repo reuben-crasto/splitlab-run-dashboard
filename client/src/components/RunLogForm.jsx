@@ -54,8 +54,12 @@ export default function RunLogForm({ run, existingLog, onClose, onSaved }) {
       onSaved(saved);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.error === 'supabase_not_configured'
-        ? 'Supabase is not configured yet — add SUPABASE_URL and SUPABASE_ANON_KEY to server/.env'
+      const code = err.response?.data?.error;
+      setError(
+        code === 'supabase_not_configured'
+          ? 'Supabase is not configured yet — add SUPABASE_URL and SUPABASE_ANON_KEY to server/.env'
+        : code === 'unauthorized'
+          ? 'Your session expired — close this and click Log Effort again to unlock.'
         : (err.message || 'Failed to save'));
       setSaving(false);
     }

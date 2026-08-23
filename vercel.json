@@ -5,6 +5,7 @@
   "routes": [
     { "src": "/api/auth/strava",     "dest": "/api/auth/strava.js" },
     { "src": "/api/auth/callback",   "dest": "/api/auth/callback.js" },
+    { "src": "/api/auth/session",    "dest": "/api/auth/session.js" },
     { "src": "/api/status",          "dest": "/api/status.js" },
     { "src": "/api/activities",      "dest": "/api/activities.js" },
     { "src": "/api/activities/(.*)", "dest": "/api/activities/[id].js?id=$1" },

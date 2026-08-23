@@ -32,3 +32,17 @@ export async function saveRunLog(payload) {
   const { data } = await api.post('/api/run-logs', payload);
   return data;
 }
+
+// ── Editor session (shared password gates editing, not viewing) ───────────────
+export async function getSession() {
+  const { data } = await api.get('/api/auth/session');
+  return data;
+}
+export async function login(password) {
+  const { data } = await api.post('/api/auth/session', { password });
+  return data;
+}
+export async function logout() {
+  const { data } = await api.delete('/api/auth/session');
+  return data;
+}

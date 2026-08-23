@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import SplitsChart from './SplitsChart.jsx';
 import PacingVerdict from './PacingVerdict.jsx';
 import RunLogForm from './RunLogForm.jsx';
+import { useAuth } from '../lib/auth.jsx';
 import { getActivity } from '../lib/api.js';
 import { formatDate, formatKm, formatDuration, mpsToSecPerKm, formatPace } from '../lib/format.js';
 
 export default function LastRunCard({ run, existingLog, onLogSaved }) {
   const [detail, setDetail] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const { requireAuth } = useAuth();
 
   useEffect(() => {
     if (!run) return;
@@ -85,7 +87,7 @@ export default function LastRunCard({ run, existingLog, onLogSaved }) {
         )}
 
         <div className="lr-actions">
-          <button className="btn-primary" onClick={() => setShowForm(true)}>
+          <button className="btn-primary" onClick={() => requireAuth(() => setShowForm(true))}>
             {existingLog ? 'Edit log' : 'Log Effort'}
           </button>
           <Link to={`/run/${run.id}`} className="btn-secondary">
