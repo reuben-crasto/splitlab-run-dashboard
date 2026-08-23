@@ -65,17 +65,23 @@ export default function LastRunCard({ run, existingLog, onLogSaved }) {
           </div>
         </div>
 
-        {splits.length > 0 && (
+        {!detail ? (
+          // Reserve the chart+verdict space while the detail loads so the
+          // action buttons below don't jump up into the middle of the card.
           <div className="lr-chart">
             <div className="lr-chart-title">Pace per km split</div>
-            <SplitsChart splits={splits} averageSpeedMps={run.average_speed_mps} height={200} />
+            <div className="lr-chart-skeleton" style={{ height: 200 }} />
           </div>
-        )}
-
-        {splits.length > 0 && (
-          <div className="lr-pacing-verdict">
-            <PacingVerdict splits={splits} averageSpeedMps={run.average_speed_mps} />
-          </div>
+        ) : splits.length > 0 && (
+          <>
+            <div className="lr-chart">
+              <div className="lr-chart-title">Pace per km split</div>
+              <SplitsChart splits={splits} averageSpeedMps={run.average_speed_mps} height={200} />
+            </div>
+            <div className="lr-pacing-verdict">
+              <PacingVerdict splits={splits} averageSpeedMps={run.average_speed_mps} />
+            </div>
+          </>
         )}
 
         <div className="lr-actions">
