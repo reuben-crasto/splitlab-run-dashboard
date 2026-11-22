@@ -4,23 +4,25 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { mpsToSecPerKm, paceMinutesDecimal, formatPace } from '../lib/format.js';
+import { color, font, fontSize } from '../tokens.js';
+import { EmptyState } from '../ui/index.js';
 
-const ACCENT = '#C4DE55';
+const ACCENT = color.accent;
 
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
     <div style={{
-      background: '#0A140B',
-      border: '1px solid #1F301F',
+      background: color.bgSurface,
+      border: `1px solid ${color.borderStrong}`,
       borderRadius: 6,
       padding: '8px 12px',
-      fontFamily: 'IBM Plex Sans, sans-serif',
-      fontSize: 12,
+      fontFamily: font.ui,
+      fontSize: fontSize.sm,
     }}>
-      <div style={{ color: '#9A9991', marginBottom: 2 }}>km {d.km}</div>
-      <div style={{ color: '#DCDBCF', fontWeight: 700 }}>{formatPace(d.paceSec)}</div>
+      <div style={{ color: color.textDim, marginBottom: 2 }}>km {d.km}</div>
+      <div style={{ color: color.text, fontWeight: 700 }}>{formatPace(d.paceSec)}</div>
     </div>
   );
 }
@@ -39,7 +41,7 @@ export default function SplitsChart({ splits, averageSpeedMps, height = 220 }) {
   }, [splits, averageSpeedMps]);
 
   if (data.length === 0) {
-    return <div className="empty-state">No split data for this run.</div>;
+    return <EmptyState>No split data for this run.</EmptyState>;
   }
 
   const validPaces = data.map((d) => d.paceMin).filter(Boolean);
@@ -60,7 +62,7 @@ export default function SplitsChart({ splits, averageSpeedMps, height = 220 }) {
           dataKey="km"
           tickLine={false}
           axisLine={false}
-          tick={{ fill: '#9A9991', fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' }}
+          tick={{ fill: color.textDim, fontSize: fontSize.xs, fontFamily: font.ui }}
         />
         <YAxis
           domain={[domainMin, domainMax]}
@@ -72,19 +74,19 @@ export default function SplitsChart({ splits, averageSpeedMps, height = 220 }) {
             const s = Math.round((v - m) * 60);
             return `${m}:${String(s).padStart(2, '0')}`;
           }}
-          tick={{ fill: '#9A9991', fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' }}
+          tick={{ fill: color.textDim, fontSize: fontSize.xs, fontFamily: font.ui }}
           width={44}
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(196,222,85,0.06)' }} />
         <ReferenceLine
           y={avgMin}
-          stroke="#1F301F"
+          stroke={color.borderStrong}
           strokeDasharray="4 3"
           label={{
             value: 'avg',
             position: 'right',
-            fill: '#9A9991',
-            style: { fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' },
+            fill: color.textDim,
+            style: { fontSize: fontSize.xs, fontFamily: font.ui },
           }}
         />
         <Bar

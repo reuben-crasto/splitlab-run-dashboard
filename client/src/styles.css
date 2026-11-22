@@ -1,36 +1,10 @@
+@import './tokens.css';
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; }
 
-/* ── Tokens ── */
-:root {
-  --bg:         #060C07;
-  --bg-surface: #0A140B;
-  --bg-raised:  #0D1A0E;
-  --border:        #172419;
-  --border-strong: #1F301F;
-  --text:       #DCDBCF;
-  --text-dim:   #9A9991;
-  --text-muted: #42423E;
-  --accent:        #C4DE55;
-  --accent-subtle: #3B431A;
-  --secondary:        #84A3BC;
-  --secondary-subtle: #283138;
-  --split-fast:        #6B9E6E;
-  --split-fast-subtle: #202F21;
-  --split-mid:         #D4B84A;
-  --split-mid-subtle:  #403716;
-  --split-slow:        #BC6B5A;
-  --split-slow-subtle: #38201B;
-  --good: #6B9E6E;
-  --warn: #D4B84A;
-  --bad:  #BC6B5A;
-  --font-ui:   'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Sans', system-ui, sans-serif;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-}
+/* Tokens live in tokens.css (primitives + semantic tiers). */
 
 body {
   background: var(--bg);
@@ -84,7 +58,7 @@ body {
   padding: 9px 12px;
   border-radius: var(--radius-md);
   text-decoration: none;
-  color: #CED1CF;
+  color: var(--text-nav);
   font-size: 16px;
   font-weight: 400;
   transition: background 0.1s, color 0.1s;
@@ -96,11 +70,11 @@ body {
 }
 
 .nav-item:hover {
-  background: rgba(196, 222, 85, 0.06);
+  background: var(--accent-ghost);
 }
 
 .nav-item.active {
-  background: rgba(196, 222, 85, 0.094);
+  background: var(--accent-soft);
   color: var(--accent);
 }
 
@@ -124,8 +98,8 @@ body {
 .sidebar-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: rgba(196, 222, 85, 0.125);
+  border-radius: var(--radius-full);
+  background: var(--accent-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,7 +137,7 @@ body {
 .sidebar-status-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--split-fast);
   flex-shrink: 0;
 }
@@ -261,7 +235,7 @@ body {
   top: 8px;
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--accent);
 }
 
@@ -289,7 +263,7 @@ body {
 .quad-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   display: inline-block;
 }
 
@@ -435,7 +409,7 @@ body {
 
 .btn-primary {
   background: var(--accent);
-  color: #050905;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--radius-sm);
   padding: 9px 18px;
@@ -474,7 +448,7 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   font-size: 11px;
   font-weight: 600;
   font-family: var(--font-ui);
@@ -545,7 +519,7 @@ body {
   transition: background 0.12s, border-color 0.12s;
 }
 
-.run-item:hover { background: rgba(255, 255, 255, 0.02); }
+.run-item:hover { background: var(--hover-wash); }
 
 .run-item--active {
   background: var(--bg-surface);
@@ -702,7 +676,7 @@ body {
 
 .ra-row:last-child { border-bottom: none; }
 
-.ra-row:hover { background: rgba(255, 255, 255, 0.02); }
+.ra-row:hover { background: var(--hover-wash); }
 
 .ra-info {
   flex: 1;
@@ -761,7 +735,7 @@ body {
   font-family: var(--font-ui);
   font-weight: 500;
   padding: 5px 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   white-space: nowrap;
@@ -769,7 +743,7 @@ body {
 
 .pe-tab.active {
   background: var(--accent);
-  color: #050905;
+  color: var(--on-accent);
   font-weight: 700;
 }
 
@@ -819,11 +793,11 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--scrim);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: var(--z-modal);
   padding: 16px;
 }
 
@@ -864,7 +838,7 @@ body {
   cursor: pointer;
   font-size: 16px;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .modal-close:hover { background: var(--bg-raised); }
@@ -918,7 +892,7 @@ body {
 .dot-btn--active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #050905;
+  color: var(--on-accent);
 }
 
 .emoji-row {
@@ -992,7 +966,7 @@ body {
   width: 100%;
   padding: 12px;
   background: var(--accent);
-  color: #050905;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--radius-sm);
   font-size: 14px;
@@ -1008,7 +982,7 @@ body {
 /* ── Pacing Shape (verdict box) ── */
 .pacing-shape {
   background: var(--bg-raised);
-  border: 1px solid rgba(196, 222, 85, 0.157);
+  border: 1px solid var(--accent-hairline);
   border-radius: var(--radius-lg);
   padding: 16px 20px;
 }
@@ -1024,17 +998,17 @@ body {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.88px;
-  color: #6E6E68;
+  color: var(--text-label);
   text-transform: uppercase;
 }
 
 .pacing-shape-badge {
-  background: rgba(196, 222, 85, 0.094);
+  background: var(--accent-soft);
   color: var(--accent);
   font-size: 12px;
   font-weight: 400;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: var(--radius-pill);
   white-space: nowrap;
 }
 
@@ -1081,7 +1055,7 @@ body {
   margin-top: 8px;
   padding: 12px 28px;
   background: var(--accent);
-  color: #050905;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--radius-md);
   font-size: 15px;

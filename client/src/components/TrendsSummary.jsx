@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { mpsToSecPerKm } from '../lib/format.js';
+import { paceRuns } from '../lib/runType.js';
+import { EmptyState } from '../ui/index.js';
 
 function getMonday(date) {
   const d = new Date(date);
@@ -19,7 +21,8 @@ export default function TrendsSummary({ runs }) {
     if (recent.length === 0) return out;
 
     // 1. Pace trend: first half vs second half of the window.
-    const byDate = [...recent].sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+    // Recovery runs are excluded so slow jogs don't read as a drop in pace.
+    const byDate = paceRuns(recent).sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
     const paces = byDate.map((r) => mpsToSecPerKm(r.average_speed_mps)).filter(Boolean);
     if (paces.length >= 4) {
       const mid = Math.floor(paces.length / 2);
@@ -62,7 +65,7 @@ export default function TrendsSummary({ runs }) {
   }, [runs]);
 
   if (bullets.length === 0) {
-    return <div className="empty-state">Log a few more runs to see your trends.</div>;
+    return <EmptyState>Log a few more runs to see your trends.</EmptyState>;
   }
 
   return (

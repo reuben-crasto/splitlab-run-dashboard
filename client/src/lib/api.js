@@ -11,9 +11,19 @@ export async function getActivities() {
   const { data } = await api.get('/api/activities');
   return data;
 }
-export async function getActivity(id) {
-  const { data } = await api.get(`/api/activities/${id}`);
-  return data;
+// Each activity detail costs a Strava request (~100 allowed per 15 min), so
+// share one request between callers and remember it for the session. This also
+// collapses React StrictMode's double-mount in dev into a single call.
+const activityRequests = new Map();
+export function getActivity(id) {
+  const key = String(id);
+  if (!activityRequests.has(key)) {
+    const req = api.get(`/api/activities/${key}`)
+      .then(({ data }) => data)
+      .catch((err) => { activityRequests.delete(key); throw err; });
+    activityRequests.set(key, req);
+  }
+  return activityRequests.get(key);
 }
 export async function getRecords() {
   const { data } = await api.get('/api/records');

@@ -3,6 +3,9 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { mpsToSecPerKm, formatPace } from '../lib/format.js';
+import { isRecoveryRun } from '../lib/runType.js';
+import { resolveRpe } from '../lib/effort.js';
+import { color, font, fontSize } from '../tokens.js';
 
 // Both km1_rpe (our app) and Strava perceived_exertion are 1–10.
 const TABS = [
@@ -29,15 +32,15 @@ function CustomTooltip({ active, payload, label }) {
   const val = payload[0]?.value;
   return (
     <div style={{
-      background: '#0A140B',
-      border: '1px solid #1F301F',
+      background: color.bgSurface,
+      border: `1px solid ${color.borderStrong}`,
       borderRadius: 6,
       padding: '8px 12px',
-      fontFamily: 'IBM Plex Sans, sans-serif',
-      fontSize: 12,
+      fontFamily: font.ui,
+      fontSize: fontSize.sm,
     }}>
-      <div style={{ color: '#9A9991', marginBottom: 2 }}>{label}</div>
-      <div style={{ color: '#DCDBCF', fontWeight: 700 }}>
+      <div style={{ color: color.textDim, marginBottom: 2 }}>{label}</div>
+      <div style={{ color: color.text, fontWeight: 700 }}>
         {val ? formatPace(val * 60) : '—'}
       </div>
     </div>
@@ -54,6 +57,7 @@ function buildWeekBuckets(runs, cutoff) {
   for (const run of runs) {
     const d = new Date(run.start_date);
     if (d < cutoff) continue;
+    if (isRecoveryRun(run)) continue; // recovery runs don't count towards avg pace
     const key = getMonday(d).getTime();
     if (weekMap.has(key)) {
       const pace = mpsToSecPerKm(run.average_speed_mps);
@@ -88,11 +92,16 @@ export default function PaceEffortChart({ runs, logMap = {} }) {
 
   // Check if ANY run has effort data
   const hasAnyEffortData = useMemo(() =>
-    runs.some(r => logMap[String(r.id)]?.km1_rpe != null || r.perceived_exertion != null),
+    runs.some(r => resolveRpe(r, logMap[String(r.id)]) != null),
   [runs, logMap]);
 
   const now = new Date();
   const cutoff = new Date(now.getTime() - 56 * 86400000);
+
+  const recoveryCount = useMemo(
+    () => runs.filter(r => new Date(r.start_date) >= cutoff && isRecoveryRun(r)).length,
+    [runs],
+  );
 
   const { data, insight, mode } = useMemo(() => {
     if (!hasAnyEffortData) {
@@ -104,7 +113,7 @@ export default function PaceEffortChart({ runs, logMap = {} }) {
 
     const tab = TABS.find(t => t.key === activeTab);
     const filtered = runs.filter(r => {
-      const rpe = logMap[String(r.id)]?.km1_rpe ?? r.perceived_exertion ?? null;
+      const rpe = resolveRpe(r, logMap[String(r.id)]);
       return rpe != null && rpe >= tab.rpeMin && rpe <= tab.rpeMax;
     });
 
@@ -150,15 +159,15 @@ export default function PaceEffortChart({ runs, logMap = {} }) {
           <AreaChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="paceGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#C4DE55" stopOpacity={0.22} />
-                <stop offset="100%" stopColor="#C4DE55" stopOpacity={0} />
+                <stop offset="0%" stopColor={color.accent} stopOpacity={0.22} />
+                <stop offset="100%" stopColor={color.accent} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#172419" vertical={false} />
+            <CartesianGrid stroke={color.border} vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fill: '#9A9991', fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' }}
-              stroke="#172419"
+              tick={{ fill: color.textDim, fontSize: fontSize.xs, fontFamily: font.ui }}
+              stroke={color.border}
             />
             <YAxis
               reversed
@@ -168,24 +177,30 @@ export default function PaceEffortChart({ runs, logMap = {} }) {
                 const s = Math.round((v - m) * 60);
                 return `${m}:${String(s).padStart(2, '0')}`;
               }}
-              tick={{ fill: '#9A9991', fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' }}
-              stroke="#172419"
+              tick={{ fill: color.textDim, fontSize: fontSize.xs, fontFamily: font.ui }}
+              stroke={color.border}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.06)' }} />
             <Area
               type="monotone"
               dataKey="paceMin"
-              stroke="#C4DE55"
+              stroke={color.accent}
               strokeWidth={2}
               fill="url(#paceGrad)"
               baseValue={maxP}
-              dot={{ r: 3, fill: '#C4DE55', strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: '#C4DE55' }}
+              dot={{ r: 3, fill: color.accent, strokeWidth: 0 }}
+              activeDot={{ r: 5, fill: color.accent }}
               connectNulls={true}
               isAnimationActive={false}
             />
           </AreaChart>
         </ResponsiveContainer>
+      )}
+
+      {recoveryCount > 0 && (
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>
+          {recoveryCount} recovery {recoveryCount === 1 ? 'run' : 'runs'} (slower than 7:00 /km) not counted in average pace.
+        </div>
       )}
 
       {mode === 'all' && (

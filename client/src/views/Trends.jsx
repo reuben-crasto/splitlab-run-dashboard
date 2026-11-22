@@ -4,6 +4,7 @@ import WeeklyVolumeChart from '../components/WeeklyVolumeChart.jsx';
 import VolumePaceQuadrant from '../components/VolumePaceQuadrant.jsx';
 import TrendsSummary from '../components/TrendsSummary.jsx';
 import { getActivities, getRunLogs } from '../lib/api.js';
+import { EmptyState, Panel } from '../ui/index.js';
 
 export default function Trends() {
   const [runs,   setRuns]   = useState(null);
@@ -30,8 +31,8 @@ export default function Trends() {
     return () => { cancelled = true; };
   }, [refreshLogs]);
 
-  if (err)   return <div className="empty-state">Error: {err}</div>;
-  if (!runs) return <div className="empty-state">Loading runs…</div>;
+  if (err)   return <EmptyState>Error: {err}</EmptyState>;
+  if (!runs) return <EmptyState>Loading runs…</EmptyState>;
 
   return (
     <div className="trends">
@@ -41,28 +42,21 @@ export default function Trends() {
       </header>
 
       <div className="trends-grid">
-        <div className="panel">
-          <h2>Trends Summary</h2>
-          <div className="panel-sub">What your data shows right now</div>
+        <Panel title="Trends Summary" subtitle="What your data shows right now">
           <TrendsSummary runs={runs} />
-        </div>
+        </Panel>
 
-        <div className="panel">
-          <h2>Pace × Effort</h2>
+        <Panel title="Pace × Effort">
           <PaceEffortChart runs={runs} logMap={logMap} />
-        </div>
+        </Panel>
 
-        <div className="panel">
-          <h2>Weekly Volume</h2>
-          <div className="panel-sub">In km</div>
+        <Panel title="Weekly Volume" subtitle="In km">
           <WeeklyVolumeChart runs={runs} />
-        </div>
+        </Panel>
 
-        <div className="panel">
-          <h2>Volume × Pace</h2>
-          <div className="panel-sub">Week-on-week shifts in volume and pace</div>
+        <Panel title="Volume × Pace" subtitle="Week-on-week shifts in volume and pace">
           <VolumePaceQuadrant runs={runs} />
-        </div>
+        </Panel>
       </div>
     </div>
   );

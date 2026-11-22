@@ -1,45 +1,67 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import MiniSplits from './MiniSplits.jsx';
 import { getActivity } from '../lib/api.js';
+import { readSplits, writeSplits } from '../lib/splitsCache.js';
 import { pacingShape } from '../lib/pacing.js';
 import { mpsToSecPerKm, formatPace, formatDate } from '../lib/format.js';
+import { resolveRpe } from '../lib/effort.js';
+import { isRecoveryRun } from '../lib/runType.js';
+import { Badge, EmptyState } from '../ui/index.js';
 
-// Module-level cache so re-selecting runs doesn't refetch splits.
-const splitCache = new Map();
-
-function resolveRpe(log, run) {
-  if (log?.km1_rpe != null) return log.km1_rpe;
-  if (run.perceived_exertion != null) return run.perceived_exertion;
-  return null;
-}
-
-function EffortBadge({ rpe, logged }) {
+function EffortBadge({ rpe, logged, recovery }) {
+  if (recovery) {
+    return <Badge tone="low" title={rpe != null ? `Effort ${rpe}/10` : undefined}>Easy · Recovery</Badge>;
+  }
   if (rpe == null) {
-    return <span className={`effort-badge ${logged ? '' : 'effort-badge--todo'}`}>Log</span>;
+    // Logged but no RPE recorded: keep the original bare-badge fallback (no tone).
+    if (logged) return <span className="effort-badge">Log</span>;
+    return <Badge tone="todo">Log</Badge>;
   }
   const r = Math.max(1, Math.min(10, rpe));
-  const cls = r <= 4 ? 'effort-badge--low' : r <= 7 ? 'effort-badge--mid' : 'effort-badge--high';
-  return <span className={`effort-badge ${cls}`}>RPE {r}</span>;
+  const tone = r <= 4 ? 'low' : r <= 7 ? 'mid' : 'high';
+  return <Badge tone={tone}>RPE {r}</Badge>;
 }
 
 function RunRow({ run, log, selected, onSelect }) {
-  const [detail, setDetail] = useState(splitCache.get(run.id) ?? null);
+  // Splits come from localStorage when we've seen this run before; otherwise
+  // they're fetched, but only once the row scrolls into view, so opening the
+  // page costs a handful of Strava requests instead of one per run.
+  // null = not known yet, [] = known to have none.
+  const [splits, setSplits] = useState(() => readSplits(run.id));
+  const [visible, setVisible] = useState(false);
+  const rowRef = useRef(null);
 
   useEffect(() => {
-    if (splitCache.has(run.id)) { setDetail(splitCache.get(run.id)); return; }
+    const el = rowRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') { setVisible(true); return; }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { setVisible(true); io.disconnect(); }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible || splits !== null) return;
     let cancelled = false;
     getActivity(run.id)
-      .then((d) => { splitCache.set(run.id, d); if (!cancelled) setDetail(d); })
+      .then((d) => {
+        const s = d.splits_metric ?? [];
+        writeSplits(run.id, s, run.start_date);
+        if (!cancelled) setSplits(s);
+      })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [run.id]);
+  }, [visible, run.id, run.start_date, splits]);
 
-  const splits = detail?.splits_metric ?? [];
-  const shape = pacingShape(splits, run.average_speed_mps).label;
-  const rpe = resolveRpe(log, run);
+  const shownSplits = splits ?? [];
+
+  const shape = pacingShape(shownSplits, run.average_speed_mps).label;
+  const rpe = resolveRpe(run, log);
 
   return (
     <button
+      ref={rowRef}
       type="button"
       className={`run-item${selected ? ' run-item--active' : ''}`}
       onClick={() => onSelect(run)}
@@ -47,7 +69,7 @@ function RunRow({ run, log, selected, onSelect }) {
       <div className="run-item-main">
         <div className="run-item-head">
           <span className="run-item-name">{run.name}</span>
-          <EffortBadge rpe={rpe} logged={!!log} />
+          <EffortBadge rpe={rpe} logged={!!log} recovery={isRecoveryRun(run)} />
         </div>
         <div className="run-item-date">{formatDate(run.start_date)}</div>
         <div className="run-item-meta">
@@ -57,13 +79,13 @@ function RunRow({ run, log, selected, onSelect }) {
           {shape && <><span className="run-item-dot">·</span><span className="run-item-shape">{shape}</span></>}
         </div>
       </div>
-      <MiniSplits splits={splits} averageSpeedMps={run.average_speed_mps} />
+      <MiniSplits splits={shownSplits} averageSpeedMps={run.average_speed_mps} />
     </button>
   );
 }
 
 export default function RunsSidebar({ runs, logMap = {}, selectedId, onSelect }) {
-  if (runs.length === 0) return <div className="empty-state">No runs yet.</div>;
+  if (runs.length === 0) return <EmptyState>No runs yet.</EmptyState>;
 
   return (
     <div className="runs-side-list">

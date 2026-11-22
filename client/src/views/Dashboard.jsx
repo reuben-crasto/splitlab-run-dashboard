@@ -5,6 +5,7 @@ import PersonalRecords from '../components/PersonalRecords.jsx';
 import WeeklyLoad from '../components/WeeklyLoad.jsx';
 import RecentActivity from '../components/RecentActivity.jsx';
 import { getActivities, getRunLogs } from '../lib/api.js';
+import { EmptyState, Panel } from '../ui/index.js';
 
 export default function Dashboard() {
   const [runs,      setRuns]      = useState(null);
@@ -35,8 +36,8 @@ export default function Dashboard() {
     return () => { cancelled = true; };
   }, [refreshLogs]);
 
-  if (err)   return <div className="empty-state">Error: {err}</div>;
-  if (!runs) return <div className="empty-state">Loading runs…</div>;
+  if (err)   return <EmptyState>Error: {err}</EmptyState>;
+  if (!runs) return <EmptyState>Loading runs…</EmptyState>;
 
   const lastRun = runs[0] ?? null;
 
@@ -52,10 +53,9 @@ export default function Dashboard() {
             setLogMap((prev) => ({ ...prev, [String(saved.activity_id)]: saved }));
           }}
         />
-        <div className="panel">
-          <h2>Pace × Effort</h2>
+        <Panel title="Pace × Effort">
           <PaceEffortChart runs={runs} logMap={logMap} />
-        </div>
+        </Panel>
       </div>
 
       {/* ── Right panel ── */}
