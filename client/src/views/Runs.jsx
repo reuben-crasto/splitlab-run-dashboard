@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import LastRunCard from '../components/LastRunCard.jsx';
 import RunsSidebar from '../components/RunsSidebar.jsx';
 import { getActivities, getRunLogs } from '../lib/api.js';
+import { EmptyState } from '../ui/index.js';
 
 export default function Runs() {
   const [runs,     setRuns]     = useState(null);
@@ -30,8 +31,8 @@ export default function Runs() {
     return () => { cancelled = true; };
   }, [refreshLogs]);
 
-  if (err)   return <div className="empty-state">Error: {err}</div>;
-  if (!runs) return <div className="empty-state">Loading runs…</div>;
+  if (err)   return <EmptyState>Error: {err}</EmptyState>;
+  if (!runs) return <EmptyState>Loading runs…</EmptyState>;
 
   return (
     <div className="runs-view">

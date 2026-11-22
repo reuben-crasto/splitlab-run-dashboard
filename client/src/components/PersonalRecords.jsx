@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
 import { mpsToSecPerKm, formatDate } from '../lib/format.js';
+import { Badge } from '../ui/index.js';
+import { resolveRpe } from '../lib/effort.js';
+import { isRecoveryRun } from '../lib/runType.js';
 
 function formatPaceValue(secPerKm) {
   if (secPerKm == null || !Number.isFinite(secPerKm)) return { value: '—', unit: '' };
@@ -8,20 +11,13 @@ function formatPaceValue(secPerKm) {
   return { value: `${m}:${String(s).padStart(2, '0')}`, unit: '/km' };
 }
 
-// Both km1_rpe (our app) and Strava perceived_exertion are 1–10.
-function resolveRpe(run, logMap) {
-  const log = logMap[String(run.id)];
-  if (log?.km1_rpe != null) return log.km1_rpe;
-  if (run.perceived_exertion != null) return run.perceived_exertion;
-  return null;
-}
 
 function EffortBadge({ rpe }) {
   if (rpe == null) return null;
   const r = Math.max(1, Math.min(10, rpe));
-  if (r <= 4) return <span className="effort-badge effort-badge--low">Easy · {r}/10</span>;
-  if (r <= 7) return <span className="effort-badge effort-badge--mid">Moderate · {r}/10</span>;
-  return <span className="effort-badge effort-badge--high">Hard · {r}/10</span>;
+  if (r <= 4) return <Badge tone="low">Easy · {r}/10</Badge>;
+  if (r <= 7) return <Badge tone="mid">Moderate · {r}/10</Badge>;
+  return <Badge tone="high">Hard · {r}/10</Badge>;
 }
 
 // ISO week key for grouping
@@ -76,14 +72,15 @@ export default function PersonalRecords({ activities = [], logMap = {} }) {
       value: paceVal.value,
       unit: paceVal.unit,
       meta: bestPaceRun ? formatDate(bestPaceRun.start_date) : null,
-      rpe: bestPaceRun ? resolveRpe(bestPaceRun, logMap) : null,
+      rpe: bestPaceRun ? resolveRpe(bestPaceRun, logMap[String(bestPaceRun.id)]) : null,
     },
     {
       label: 'Longest Run',
       value: longestRun ? (longestRun.distance_m / 1000).toFixed(1) : '—',
       unit: longestRun ? 'km' : '',
       meta: longestRun ? formatDate(longestRun.start_date) : null,
-      rpe: longestRun ? resolveRpe(longestRun, logMap) : null,
+      rpe: longestRun ? resolveRpe(longestRun, logMap[String(longestRun.id)]) : null,
+      recovery: longestRun ? isRecoveryRun(longestRun) : false,
     },
     {
       label: 'Best Week',
@@ -108,7 +105,9 @@ export default function PersonalRecords({ activities = [], logMap = {} }) {
             {c.value}
             {c.unit && <span className="time-unit">{c.unit}</span>}
           </div>
-          {c.rpe != null && <div style={{ marginBottom: 4 }}><EffortBadge rpe={c.rpe} /></div>}
+          {c.recovery ? (
+            <div style={{ marginBottom: 4 }}><Badge tone="low">Easy · Recovery</Badge></div>
+          ) : c.rpe != null && <div style={{ marginBottom: 4 }}><EffortBadge rpe={c.rpe} /></div>}
           {c.meta && <div className="meta">{c.meta}</div>}
         </div>
       ))}

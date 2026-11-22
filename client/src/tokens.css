@@ -1,0 +1,246 @@
+/* ============================================================================
+   SplitLab — Design Tokens
+   ----------------------------------------------------------------------------
+   Reconciled against the Figma file "SplitLab" (qkxZAa8TDpeVZFuCxmHtTW),
+   collections "SplitLab / Colors" (mode: Dark) and "Typography" (mode: Base).
+
+   Two tiers, mirroring the Figma collections:
+
+     1. PRIMITIVES — raw palette. Named to match Figma exactly, so every token
+        here maps 1:1 to a Figma variable. Never referenced by components.
+     2. SEMANTIC   — intent-named aliases. The only tier components use. These
+        keep their existing code names; the Figma equivalent is noted inline.
+
+   Figma defines full 100–900 ramps for ink, yellow, blue, eggshell, split_fast,
+   split_mid and split_slow. Only the steps the app actually uses are mirrored
+   below — reach into Figma for intermediate steps as components need them.
+
+   Figma has NO spacing and NO radius collections. Those scales are code-side
+   only and have no design counterpart to reconcile against.
+
+   JS consumers (Recharts, inline styles) import ./tokens.js, which mirrors the
+   semantic tier — SVG presentation attributes cannot resolve var().
+   ============================================================================ */
+
+:root {
+  /* ══ 1. PRIMITIVES ══════════════════════════════════════════════════════ */
+
+  /* ink — app surfaces and borders, darkest to lightest */
+  --ink-900: #060C07;
+  --ink-800: #0A140B;
+  --ink-700: #0D1A0E;
+  --ink-600: #172419;
+  --ink-500: #1F301F;
+  --ink-100: #CED1CF;
+
+  /* eggshell — text, darkest to lightest */
+  --eggshell-900: #42423E;
+  --eggshell-800: #6E6E68;
+  --eggshell-700: #9A9991;
+  --eggshell-500: #DCDBCF;
+
+  /* yellow — brand accent */
+  --yellow-900: #3B431A;
+  --yellow-500: #C4DE55;
+  --yellow-rgb: 196 222 85;
+
+  /* blue — secondary data series */
+  --blue-900: #283138;
+  --blue-500: #84A3BC;
+
+  /* split hues — pacing and status */
+  --split-fast-900: #202F21;
+  --split-fast-500: #6B9E6E;
+  --split-mid-900:  #403716;
+  --split-mid-500:  #D4B84A;
+  --split-slow-900: #38201B;
+  --split-slow-500: #BC6B5A;
+
+  /* Code-only: text that sits on top of yellow-500. No Figma equivalent —
+     the two Figma button components use it as a raw fill, not a variable. */
+  --on-accent-ink: #050905;
+
+  /* Neutral alphas — code-only, no Figma equivalent (see note 3) */
+  --white-rgb: 255 255 255;
+  --black-rgb: 0 0 0;
+
+
+  /* ══ 2. SEMANTIC ════════════════════════════════════════════════════════ */
+
+  /* Surfaces           Figma: bg/base, bg/surface, bg/elevated */
+  --bg:         var(--ink-900);
+  --bg-surface: var(--ink-800);
+  --bg-raised:  var(--ink-700);
+
+  /* Borders            Figma: border/default, border/strong */
+  --border:        var(--ink-600);
+  --border-strong: var(--ink-500);
+
+  /* Text               Figma: text/primary, text/secondary, text/muted */
+  --text:       var(--eggshell-500);
+  --text-dim:   var(--eggshell-700);
+  --text-muted: var(--eggshell-900);
+  /* No Figma semantic alias — these bind the primitive directly (note 1) */
+  --text-nav:   var(--ink-100);
+  --text-label: var(--eggshell-800);
+
+  /* Accent             Figma: accent/primary, accent/subtle */
+  --accent:        var(--yellow-500);
+  --accent-subtle: var(--yellow-900);
+  --on-accent:     var(--on-accent-ink);
+
+  /* Accent alpha ramp — code-only, no Figma equivalent (note 3) */
+  --accent-ghost:    rgb(var(--yellow-rgb) / 0.06);   /* nav hover */
+  --accent-soft:     rgb(var(--yellow-rgb) / 0.094);  /* nav active, badge fill */
+  --accent-muted:    rgb(var(--yellow-rgb) / 0.125);  /* avatar fill */
+  --accent-hairline: rgb(var(--yellow-rgb) / 0.157);  /* verdict box border */
+
+  /* Secondary          Figma: secondary/default, secondary/subtle */
+  --secondary:        var(--blue-500);
+  --secondary-subtle: var(--blue-900);
+
+  /* Split pacing       Figma: split/fast, split/fast-subtle, … */
+  --split-fast:        var(--split-fast-500);
+  --split-fast-subtle: var(--split-fast-900);
+  --split-mid:         var(--split-mid-500);
+  --split-mid-subtle:  var(--split-mid-900);
+  --split-slow:        var(--split-slow-500);
+  --split-slow-subtle: var(--split-slow-900);
+
+  /* Status — reuse the split hues. No Figma equivalent. */
+  --good: var(--split-fast-500);
+  --warn: var(--split-mid-500);
+  --bad:  var(--split-slow-500);
+
+  /* Interaction washes — code-only, no Figma equivalent (note 3) */
+  --hover-wash: rgb(var(--white-rgb) / 0.02);
+  --scrim:      rgb(var(--black-rgb) / 0.7);
+
+
+  /* ══ TYPOGRAPHY ═════════════════════════════════════════════════════════ */
+  /* Figma collection "Typography", mode Base. */
+
+  --font-ui: 'IBM Plex Sans', system-ui, sans-serif;   /* Figma: Font/Name/Body */
+
+  /* Figma defines ONLY Regular (400) and Bold (700). 500 and 600 are used
+     throughout styles.css with no design counterpart — see note 2. */
+  --weight-regular:  400;
+  --weight-medium:   500;   /* off-system */
+  --weight-semibold: 600;   /* off-system, and not loaded */
+  --weight-bold:     700;
+
+  /* Sizes present in BOTH Figma and the app */
+  --text-sm:  12px;   /* Figma: Body 3  (line-height 18px) */
+  --text-base:14px;   /* Figma: Body 2  (line-height 21px) */
+  --text-lg:  16px;   /* Figma: Body 1  (line-height 24px) */
+  --text-2xl: 20px;   /* Figma: Heading 6 (line-height 26px) */
+  --text-3xl: 24px;   /* Figma: Heading 5 (line-height 31.2px) */
+
+  /* Sizes the app uses that Figma does not define — see note 4 */
+  --text-2xs: 10px;
+  --text-xs:  11px;
+  --text-md:  13px;
+
+  --leading-tight:  1.1;
+  --leading-snug:   1.4;
+  --leading-normal: 1.5;
+  --leading-relaxed:1.6;
+
+  --tracking-wide:  0.06em;   /* stat labels */
+  --tracking-wider: 0.08em;   /* panel headings */
+
+
+  /* ══ SPACING ════════════════════════════════════════════════════════════ */
+  /* Code-only — Figma has no spacing collection. 4px scale with 2px
+     half-steps. Existing rules still use raw px; new components in src/ui/
+     should use these. */
+
+  --space-0-5: 2px;
+  --space-1:   4px;
+  --space-1-5: 6px;
+  --space-2:   8px;
+  --space-2-5: 10px;
+  --space-3:   12px;
+  --space-3-5: 14px;
+  --space-4:   16px;
+  --space-4-5: 18px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-7:   28px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-15:  60px;
+
+
+  /* ══ RADII ══════════════════════════════════════════════════════════════ */
+  /* Code-only — Figma has no radius collection. */
+
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-pill: 20px;
+  --radius-full: 50%;
+
+
+  /* ══ MOTION ═════════════════════════════════════════════════════════════ */
+
+  --duration-fast: 0.1s;
+  --duration-base: 0.15s;
+  --ease-default:  ease;
+
+
+  /* ══ ELEVATION ══════════════════════════════════════════════════════════ */
+
+  --z-modal: 50;
+}
+
+/* ============================================================================
+   RECONCILIATION LOG
+   ----------------------------------------------------------------------------
+   Checked 2026-08-27 against Figma "SplitLab". 13 of 18 semantic colors were
+   hex-identical. The 5 that differed were all surfaces and borders: the code
+   palette sat ~2 steps lighter on the ink ramp than Figma, and the two border
+   values existed nowhere in the ramp at all.
+
+   RESOLVED: code won. Figma's ink/500–ink/900 were updated to the shipping
+   values, leaving every semantic alias intact. Previous Figma values, for the
+   record:
+       ink/900  #040704  ->  #060C07
+       ink/800  #060C07  ->  #0A140B
+       ink/700  #081009  ->  #0D1A0E
+       ink/600  #0A140B  ->  #172419
+       ink/500  #0C170D  ->  #1F301F
+
+   OPEN ITEMS
+   ----------------------------------------------------------------------------
+   1. --text-nav / --text-label bind primitives directly because Figma has no
+      semantic alias for ink/100 or eggshell/800. Both ARE real, deliberate
+      Figma primitives, so they should NOT be collapsed into --text/--text-dim.
+      Worth adding matching aliases in Figma so the semantic tier is complete.
+
+   2. WEIGHTS 500 AND 600 ARE OFF-SYSTEM. Figma's Typography collection defines
+      only Regular (400) and Bold (700). styles.css uses 500 (.btn-secondary,
+      .dot-field-label, .pe-tab, .emoji-*) and 600 (.btn-primary, .effort-badge,
+      .run-item-name, .ra-pace, .dot-btn). 600 is additionally not requested in
+      index.html (400;500;700), so the browser synthesises it. Either add the
+      weights to Figma and the font request, or move these rules onto 400/700.
+
+   3. NO ALPHA, SPACING, OR RADIUS VARIABLES EXIST IN FIGMA. The accent alpha
+      ramp, --hover-wash, --scrim, and both scales are code-side inventions with
+      no design counterpart. They are load-bearing (nav hover, active states,
+      the modal scrim), so they belong in Figma as variables.
+
+   4. TYPE SCALE BARELY OVERLAPS. Figma: 12, 14, 16, 20, 24, 32, 48, 60, 72,
+      each with a paired line height. The app additionally uses 10, 11, 13, 15,
+      18, 22 and 28 — none of which Figma defines. Meanwhile Figma's 32/48/60/72
+      are unused by the app and look like untouched template defaults. The app's
+      line heights are unitless ratios; Figma's are absolute px. Needs a real
+      decision about what the product's scale actually is.
+
+   5. OFF-GRID SPACING still present in styles.css: 3px (.modal-subtitle,
+      .pr-card .time), 5px (.pe-tab, .quad-legend span), 9px (.sidebar-nav,
+      .nav-item, .btn-primary, .btn-secondary), and a 9px radius on .dot-btn.
+
+   6. .dot-field is an empty ruleset in styles.css.
+   ============================================================================ */

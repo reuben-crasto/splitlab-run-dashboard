@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { mpsToSecPerKm, formatPace } from '../lib/format.js';
+import { paceRuns } from '../lib/runType.js';
+import { resolveRpe } from '../lib/effort.js';
 
 function getWeekStart(date) {
   const d = new Date(date);
@@ -26,14 +28,15 @@ export default function WeeklyLoad({ runs, logMap = {} }) {
     const runsCount = thisRuns.length;
 
     const effortValues = thisRuns
-      .map((r) => logMap[String(r.id)]?.km1_rpe ?? r.perceived_exertion)
+      .map((r) => resolveRpe(r, logMap[String(r.id)]))
       .filter((v) => v != null);
     const avgEffort = effortValues.length > 0
       ? effortValues.reduce((a, b) => a + b, 0) / effortValues.length
       : null;
 
-    const thisPaces = thisRuns.map((r) => mpsToSecPerKm(r.average_speed_mps)).filter(Boolean);
-    const lastPaces = lastRuns.map((r) => mpsToSecPerKm(r.average_speed_mps)).filter(Boolean);
+    // Recovery runs (slower than 7:00 /km) don't count towards average pace.
+    const thisPaces = paceRuns(thisRuns).map((r) => mpsToSecPerKm(r.average_speed_mps)).filter(Boolean);
+    const lastPaces = paceRuns(lastRuns).map((r) => mpsToSecPerKm(r.average_speed_mps)).filter(Boolean);
     const thisAvgPace = thisPaces.length ? thisPaces.reduce((a, b) => a + b, 0) / thisPaces.length : null;
     const lastAvgPace = lastPaces.length ? lastPaces.reduce((a, b) => a + b, 0) / lastPaces.length : null;
     const paceDiff = thisAvgPace != null && lastAvgPace != null ? thisAvgPace - lastAvgPace : null;

@@ -43,6 +43,7 @@ router.get('/activities', async (req, res, next) => {
       elapsed_time_s: a.elapsed_time,
       average_speed_mps: a.average_speed,
       total_elevation_gain: a.total_elevation_gain,
+      perceived_exertion: a.perceived_exertion ?? null,
     }));
     res.json(summary);
   } catch (err) {
@@ -63,6 +64,7 @@ router.get('/activities/:id', async (req, res, next) => {
       distance_m: detail.distance,
       moving_time_s: detail.moving_time,
       average_speed_mps: detail.average_speed,
+      perceived_exertion: detail.perceived_exertion ?? null,
       splits_metric: detail.splits_metric || [],
       best_efforts: detail.best_efforts || [],
     });

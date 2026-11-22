@@ -4,6 +4,7 @@ import SplitsChart from '../components/SplitsChart.jsx';
 import PacingVerdict from '../components/PacingVerdict.jsx';
 import { getActivity } from '../lib/api.js';
 import { formatDate, formatKm, formatDuration, mpsToSecPerKm, formatPace } from '../lib/format.js';
+import { EmptyState, Panel } from '../ui/index.js';
 
 export default function RunDetail() {
   const { id } = useParams();
@@ -18,8 +19,8 @@ export default function RunDetail() {
     return () => { cancelled = true; };
   }, [id]);
 
-  if (err) return <div className="empty-state">Error: {err}</div>;
-  if (!run) return <div className="empty-state">Loading run…</div>;
+  if (err) return <EmptyState>Error: {err}</EmptyState>;
+  if (!run) return <EmptyState>Loading run…</EmptyState>;
 
   return (
     <div style={{ padding: '28px 24px' }}>
@@ -34,11 +35,10 @@ export default function RunDetail() {
         </div>
       </div>
 
-      <div className="panel">
-        <h2>Pace per KM — where am I slowing down?</h2>
+      <Panel title="Pace per KM — where am I slowing down?">
         <SplitsChart splits={run.splits_metric} averageSpeedMps={run.average_speed_mps} />
         <PacingVerdict splits={run.splits_metric} averageSpeedMps={run.average_speed_mps} />
-      </div>
+      </Panel>
     </div>
   );
 }

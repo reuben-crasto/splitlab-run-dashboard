@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Modal } from '../ui/index.js';
 
 export default function UnlockModal({ configured = true, onSubmit, onSuccess, onClose }) {
   const [password, setPassword] = useState('');
@@ -24,16 +25,7 @@ export default function UnlockModal({ configured = true, onSubmit, onSuccess, on
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal--narrow" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <div className="modal-title">Unlock editing</div>
-            <div className="modal-subtitle">Enter your password to log effort.</div>
-          </div>
-          <button className="modal-close" type="button" onClick={onClose}>✕</button>
-        </div>
-
+    <Modal title="Unlock editing" subtitle="Enter your password to log effort." narrow onClose={onClose}>
         {!configured ? (
           <div className="log-form">
             <div className="log-error">
@@ -58,7 +50,6 @@ export default function UnlockModal({ configured = true, onSubmit, onSuccess, on
           </button>
         </form>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }

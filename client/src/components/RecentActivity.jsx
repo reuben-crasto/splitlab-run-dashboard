@@ -1,19 +1,15 @@
 import { Link } from 'react-router-dom';
 import { mpsToSecPerKm, formatPace, formatDate } from '../lib/format.js';
-
-// Both km1_rpe (our app) and Strava perceived_exertion are 1–10.
-function resolveRpe(log, run) {
-  if (log?.km1_rpe != null) return log.km1_rpe;
-  if (run.perceived_exertion != null) return run.perceived_exertion;
-  return null;
-}
+import { Badge } from '../ui/index.js';
+import { resolveRpe } from '../lib/effort.js';
+import { isRecoveryRun } from '../lib/runType.js';
 
 function EffortBadge({ rpe }) {
   if (rpe == null) return null;
   const r = Math.max(1, Math.min(10, rpe));
-  if (r <= 4) return <span className="effort-badge effort-badge--low">Easy · {r}/10</span>;
-  if (r <= 7) return <span className="effort-badge effort-badge--mid">Moderate · {r}/10</span>;
-  return <span className="effort-badge effort-badge--high">Hard · {r}/10</span>;
+  if (r <= 4) return <Badge tone="low">Easy · {r}/10</Badge>;
+  if (r <= 7) return <Badge tone="mid">Moderate · {r}/10</Badge>;
+  return <Badge tone="high">Hard · {r}/10</Badge>;
 }
 
 export default function RecentActivity({ runs, logMap = {} }) {
@@ -27,7 +23,8 @@ export default function RecentActivity({ runs, logMap = {} }) {
     <div className="ra-list">
       {recent.map((run) => {
         const log = logMap[String(run.id)];
-        const effort = resolveRpe(log, run);
+        const effort = resolveRpe(run, log);
+        const recovery = isRecoveryRun(run);
 
         const paceSec = mpsToSecPerKm(run.average_speed_mps);
         return (
@@ -40,7 +37,9 @@ export default function RecentActivity({ runs, logMap = {} }) {
             </div>
             <div className="ra-right">
               <div className="ra-pace">{formatPace(paceSec)}</div>
-              {effort != null ? (
+              {recovery ? (
+                <Badge tone="low" title={effort != null ? `Effort ${effort}/10` : undefined}>Easy · Recovery</Badge>
+              ) : effort != null ? (
                 <EffortBadge rpe={effort} />
               ) : (
                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>no effort</span>

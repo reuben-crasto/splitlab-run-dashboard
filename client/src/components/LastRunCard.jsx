@@ -6,6 +6,8 @@ import RunLogForm from './RunLogForm.jsx';
 import { useAuth } from '../lib/auth.jsx';
 import { getActivity } from '../lib/api.js';
 import { formatDate, formatKm, formatDuration, mpsToSecPerKm, formatPace } from '../lib/format.js';
+import { isRecoveryRun } from '../lib/runType.js';
+import { Badge, Button, Stat, EmptyState } from '../ui/index.js';
 
 export default function LastRunCard({ run, existingLog, onLogSaved }) {
   const [detail, setDetail] = useState(null);
@@ -24,47 +26,32 @@ export default function LastRunCard({ run, existingLog, onLogSaved }) {
   if (!run) {
     return (
       <div className="last-run-card">
-        <div className="empty-state">No runs yet. Connect Strava and complete a run!</div>
+        <EmptyState>No runs yet. Connect Strava and complete a run!</EmptyState>
       </div>
     );
   }
 
   const splits = detail?.splits_metric ?? [];
   const paceSec = mpsToSecPerKm(run.average_speed_mps);
+  const paceLabel = paceSec != null
+    ? `${Math.floor(paceSec / 60)}:${String(Math.round(paceSec % 60)).padStart(2, '0')}`
+    : '—';
 
   return (
     <>
       <div className="last-run-card">
         <div className="lr-header">
           <div className="lr-run-name">{run.name}</div>
-          <div className="lr-run-date">{formatDate(run.start_date)}</div>
+          <div className="lr-run-date">
+            {formatDate(run.start_date)}
+            {isRecoveryRun(run) && <Badge tone="low" style={{ marginLeft: 8 }}>Easy · Recovery</Badge>}
+          </div>
         </div>
 
         <div className="lr-stats">
-          <div className="lr-stat">
-            <div className="lr-stat-label">Distance</div>
-            <div className="lr-stat-value">
-              {(run.distance_m / 1000).toFixed(2)}
-              <span className="lr-stat-unit">km</span>
-            </div>
-          </div>
-          <div className="lr-stat">
-            <div className="lr-stat-label">Avg Pace</div>
-            <div className="lr-stat-value">
-              {paceSec != null ? (() => {
-                const m = Math.floor(paceSec / 60);
-                const s = Math.round(paceSec % 60);
-                return `${m}:${String(s).padStart(2, '0')}`;
-              })() : '—'}
-              <span className="lr-stat-unit">/km</span>
-            </div>
-          </div>
-          <div className="lr-stat">
-            <div className="lr-stat-label">Time</div>
-            <div className="lr-stat-value">
-              {formatDuration(run.moving_time_s)}
-            </div>
-          </div>
+          <Stat label="Distance" value={(run.distance_m / 1000).toFixed(2)} unit="km" />
+          <Stat label="Avg Pace" value={paceLabel} unit="/km" />
+          <Stat label="Time" value={formatDuration(run.moving_time_s)} />
         </div>
 
         {!detail ? (
@@ -87,12 +74,12 @@ export default function LastRunCard({ run, existingLog, onLogSaved }) {
         )}
 
         <div className="lr-actions">
-          <button className="btn-primary" onClick={() => requireAuth(() => setShowForm(true))}>
+          <Button variant="primary" onClick={() => requireAuth(() => setShowForm(true))}>
             {existingLog ? 'Edit log' : 'Log Effort'}
-          </button>
-          <Link to={`/run/${run.id}`} className="btn-secondary">
+          </Button>
+          <Button variant="secondary" as={Link} to={`/run/${run.id}`}>
             View full details →
-          </Link>
+          </Button>
         </div>
       </div>
 

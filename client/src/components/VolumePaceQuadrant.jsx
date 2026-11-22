@@ -4,9 +4,12 @@ import {
   Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 import { mpsToSecPerKm, formatPace } from '../lib/format.js';
+import { isRecoveryRun } from '../lib/runType.js';
+import { color, font, fontSize, radius } from '../tokens.js';
+import { EmptyState } from '../ui/index.js';
 
-const ACCENT = '#C4DE55';
-const PAST   = '#84A3BC';
+const ACCENT = color.accent;
+const PAST   = color.secondary;
 
 const X_MAX = 25; // % volume change
 const Y_MAX = 15; // seconds/km pace change
@@ -38,7 +41,8 @@ export default function VolumePaceQuadrant({ runs }) {
       if (!byKey.has(key)) continue;
       const w = byKey.get(key);
       w.km += (run.distance_m || 0) / 1000;
-      const pace = mpsToSecPerKm(run.average_speed_mps);
+      // Volume counts every run; pace skips recovery runs.
+      const pace = isRecoveryRun(run) ? null : mpsToSecPerKm(run.average_speed_mps);
       if (pace) { w.paceSum += pace; w.paceN += 1; }
     }
     const stats = weeks.map((w) => ({
@@ -65,7 +69,7 @@ export default function VolumePaceQuadrant({ runs }) {
   }, [runs]);
 
   if (points.length === 0) {
-    return <div className="empty-state">Not enough weekly history yet.</div>;
+    return <EmptyState>Not enough weekly history yet.</EmptyState>;
   }
 
   const thisWeek = points.filter((p) => p.isNow);
@@ -76,30 +80,30 @@ export default function VolumePaceQuadrant({ runs }) {
       <ResponsiveContainer width="100%" height={240}>
         <ScatterChart margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
           {/* Quadrant tints — "both building" (accent) and "both easing" (secondary) */}
-          <ReferenceArea x1={0} x2={X_MAX} y1={-Y_MAX} y2={0} fill="#C4DE55" fillOpacity={0.05} />
-          <ReferenceArea x1={-X_MAX} x2={0} y1={0} y2={Y_MAX} fill="#84A3BC" fillOpacity={0.05} />
+          <ReferenceArea x1={0} x2={X_MAX} y1={-Y_MAX} y2={0} fill={color.accent} fillOpacity={0.05} />
+          <ReferenceArea x1={-X_MAX} x2={0} y1={0} y2={Y_MAX} fill={color.secondary} fillOpacity={0.05} />
 
-          <ReferenceLine x={0} stroke="#1F301F" />
-          <ReferenceLine y={0} stroke="#1F301F" />
+          <ReferenceLine x={0} stroke={color.borderStrong} />
+          <ReferenceLine y={0} stroke={color.borderStrong} />
 
           <XAxis
             type="number" dataKey="x" domain={[-X_MAX, X_MAX]}
             ticks={[-20, -10, 0, 10, 20]}
             tickFormatter={(v) => (v > 0 ? `+${v}%` : `${v}%`)}
-            tick={{ fill: '#9A9991', fontSize: 10, fontFamily: 'IBM Plex Sans, sans-serif' }}
-            stroke="#172419"
+            tick={{ fill: color.textDim, fontSize: fontSize['2xs'], fontFamily: font.ui }}
+            stroke={color.border}
           />
           <YAxis
             type="number" dataKey="y" domain={[-Y_MAX, Y_MAX]} reversed
             ticks={[-15, 0, 15]}
             tickFormatter={(v) => (v > 0 ? `+${v}s` : `${v}s`)}
-            tick={{ fill: '#9A9991', fontSize: 10, fontFamily: 'IBM Plex Sans, sans-serif' }}
-            stroke="#172419"
+            tick={{ fill: color.textDim, fontSize: fontSize['2xs'], fontFamily: font.ui }}
+            stroke={color.border}
           />
           <ZAxis range={[60, 60]} />
           <Tooltip
             cursor={{ stroke: 'rgba(255,255,255,0.06)' }}
-            contentStyle={{ background: '#0A140B', border: '1px solid #1F301F', borderRadius: 6, fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 12 }}
+            contentStyle={{ background: color.bgSurface, border: `1px solid ${color.borderStrong}`, borderRadius: radius.sm, fontFamily: font.ui, fontSize: fontSize.sm }}
             labelStyle={{ display: 'none' }}
             formatter={(_v, _n, ctx) => {
               const p = ctx.payload;

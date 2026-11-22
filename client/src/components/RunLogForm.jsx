@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Modal } from '../ui/index.js';
 import { saveRunLog } from '../lib/api.js';
 import { formatDate, formatKm, mpsToSecPerKm, formatPace } from '../lib/format.js';
 
@@ -65,19 +66,10 @@ export default function RunLogForm({ run, existingLog, onClose, onSaved }) {
     }
   }
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <div className="modal-title">Log this run</div>
-            <div className="modal-subtitle">
-              {formatDate(run.start_date)} · {formatKm(run.distance_m)} · {formatPace(mpsToSecPerKm(run.average_speed_mps))}
-            </div>
-          </div>
-          <button className="modal-close" type="button" onClick={onClose}>✕</button>
-        </div>
+  const subtitle = `${formatDate(run.start_date)} · ${formatKm(run.distance_m)} · ${formatPace(mpsToSecPerKm(run.average_speed_mps))}`;
 
+  return (
+    <Modal title="Log this run" subtitle={subtitle} onClose={onClose}>
         <form className="log-form" onSubmit={handleSubmit}>
           <DotSelector
             label="How did km 1 feel?"
@@ -127,7 +119,6 @@ export default function RunLogForm({ run, existingLog, onClose, onSaved }) {
             {saving ? 'Saving…' : 'Save log'}
           </button>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

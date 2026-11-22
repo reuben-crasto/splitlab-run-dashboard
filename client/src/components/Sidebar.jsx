@@ -67,7 +67,7 @@ export default function Sidebar({ athlete }) {
             {({ isActive }) => (
               <>
                 <span className="nav-icon">
-                  <Icon color={isActive ? 'var(--accent)' : '#CED1CF'} />
+                  <Icon color={isActive ? 'var(--accent)' : 'var(--text-nav)'} />
                 </span>
                 {label}
               </>

@@ -9,17 +9,29 @@
       "port": 3001
     },
     {
+      "name": "Vercel API",
+      "runtimeExecutable": "vercel",
+      "runtimeArgs": ["dev", "--listen", "3000"],
+      "port": 3000
+    },
+    {
       "name": "Vite React Client",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["node_modules/.bin/vite"],
-      "cwd": "client",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "client", "run", "dev"],
       "port": 5173
     },
     {
       "name": "Both (concurrently)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": ["start"],
       "port": 5173
+    },
+    {
+      "name": "Storybook",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/.bin/storybook", "dev", "-p", "6006", "--no-open", "--ci"],
+      "cwd": "client",
+      "port": 6006
     }
   ]
 }

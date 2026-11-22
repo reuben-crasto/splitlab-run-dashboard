@@ -2,9 +2,11 @@ import { useMemo } from 'react';
 import {
   BarChart, Bar, Cell, XAxis, LabelList, ResponsiveContainer,
 } from 'recharts';
+import { color, font, fontSize } from '../tokens.js';
+import { EmptyState } from '../ui/index.js';
 
-const ACCENT = '#C4DE55';
-const MUTED  = '#1F301F';
+const ACCENT = color.accent;
+const MUTED  = color.borderStrong;
 
 function getMonday(date) {
   const d = new Date(date);
@@ -35,24 +37,24 @@ export default function WeeklyVolumeChart({ runs }) {
   }, [runs]);
 
   const hasData = data.some((d) => d.km > 0);
-  if (!hasData) return <div className="empty-state">No runs in the last 8 weeks.</div>;
+  if (!hasData) return <EmptyState>No runs in the last 8 weeks.</EmptyState>;
 
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={data} margin={{ top: 24, right: 8, left: 8, bottom: 0 }}>
         <XAxis
           dataKey="label"
-          tick={{ fill: '#9A9991', fontSize: 11, fontFamily: 'IBM Plex Sans, sans-serif' }}
-          axisLine={{ stroke: '#172419' }}
+          tick={{ fill: color.textDim, fontSize: fontSize.xs, fontFamily: font.ui }}
+          axisLine={{ stroke: color.border }}
           tickLine={false}
         />
         <Bar dataKey="km" radius={[6, 6, 0, 0]} isAnimationActive={false}>
           <LabelList
             dataKey="km"
             position="top"
-            fill="#9A9991"
-            fontSize={11}
-            fontFamily="IBM Plex Sans, sans-serif"
+            fill={color.textDim}
+            fontSize={fontSize.xs}
+            fontFamily={font.ui}
             formatter={(v) => (v > 0 ? v : '')}
           />
           {data.map((d, i) => (
